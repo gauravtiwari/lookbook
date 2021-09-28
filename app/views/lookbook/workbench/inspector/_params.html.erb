@@ -1,0 +1,14 @@
+<div class="divide-y divide-gray-300" x-data="paramsEditor" skip-morph>
+  <% fields.each do |field| %>
+    <div class="grid grid-cols-12 w-full items-center px-4 py-4">
+      <div class="col-span-4">
+        <label for="param-<%= field[:name] %>" class="font-bold cursor-pointer">
+          <%= field[:name].humanize %>
+        </label>
+      </div>
+      <div class="col-span-8">
+        <%= render "workbench/inspector/fields/#{field[:field_type]}", **field %>
+      </div>
+    </div>
+  <% end %>
+</div>

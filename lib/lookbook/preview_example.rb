@@ -49,6 +49,29 @@ module Lookbook
       @preview.lookbook_hierarchy_depth + 1
     end
 
+    def params
+      method_params = code_object.parameters
+      code_object.tags(:param).map do |tag|
+        name = tag.name.to_s        
+        type = tag.types.first
+        parsed_param = method_params.find { |p| p[0] == "#{name}:" }
+        default_value = parsed_param ? parsed_param[1] : nil
+        if type == String && default_value
+          str_match = default_value.match(/^[\"\'](.+)[\"\']$/)
+          if str_match
+            default_value = str_match[1]
+          end
+        end
+        
+        {
+          name: name,
+          lang_type: type,
+          field_type: tag.text.split[0] || "text",
+          default_value: default_value
+        }
+      end
+    end
+
     private
 
     def taggable_object_path

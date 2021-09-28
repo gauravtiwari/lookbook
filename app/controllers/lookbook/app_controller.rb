@@ -45,6 +45,7 @@ module Lookbook
       @source = []
       @output = []
       @notes = []
+      @params = []
     end
 
     def find_preview
@@ -84,6 +85,11 @@ module Lookbook
           label: example.label,
           content: example.notes
         }
+      end
+      example.params.each do |param|
+        unless @params.find { |p| p[:name] == param[:name] }
+          @params << param
+        end
       end
     end
 
@@ -126,6 +132,11 @@ module Lookbook
             hotkey: "n",
             items: @notes,
             disabled: @notes.none?
+          },
+          params: {
+            label: "Params",
+            template: "params",
+            fields: @params
           }
         }
       }

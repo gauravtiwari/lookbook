@@ -6,7 +6,7 @@ export default function (from, to, opts = {}) {
       if (fromEl._x_dataStack) {
         Alpine.clone(fromEl, toEl);
       }
-      if (fromEl.isEqualNode(toEl)) {
+      if (fromEl.isEqualNode(toEl) || fromEl.hasAttribute("skip-morph")) {
         return false;
       }
       return true;

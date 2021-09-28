@@ -58,6 +58,60 @@
     });
   };
 
+  // node_modules/debounce/index.js
+  var require_debounce = __commonJS({
+    "node_modules/debounce/index.js"(exports, module) {
+      function debounce4(func, wait, immediate) {
+        var timeout, args, context, timestamp, result;
+        if (wait == null)
+          wait = 100;
+        function later() {
+          var last = Date.now() - timestamp;
+          if (last < wait && last >= 0) {
+            timeout = setTimeout(later, wait - last);
+          } else {
+            timeout = null;
+            if (!immediate) {
+              result = func.apply(context, args);
+              context = args = null;
+            }
+          }
+        }
+        ;
+        var debounced = function() {
+          context = this;
+          args = arguments;
+          timestamp = Date.now();
+          var callNow = immediate && !timeout;
+          if (!timeout)
+            timeout = setTimeout(later, wait);
+          if (callNow) {
+            result = func.apply(context, args);
+            context = args = null;
+          }
+          return result;
+        };
+        debounced.clear = function() {
+          if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+          }
+        };
+        debounced.flush = function() {
+          if (timeout) {
+            result = func.apply(context, args);
+            context = args = null;
+            clearTimeout(timeout);
+            timeout = null;
+          }
+        };
+        return debounced;
+      }
+      debounce4.debounce = debounce4;
+      module.exports = debounce4;
+    }
+  });
+
   // node_modules/@rails/actioncable/app/assets/javascripts/action_cable.js
   var require_action_cable = __commonJS({
     "node_modules/@rails/actioncable/app/assets/javascripts/action_cable.js"(exports, module) {
@@ -577,60 +631,6 @@
           value: true
         });
       });
-    }
-  });
-
-  // node_modules/debounce/index.js
-  var require_debounce = __commonJS({
-    "node_modules/debounce/index.js"(exports, module) {
-      function debounce3(func, wait, immediate) {
-        var timeout, args, context, timestamp, result;
-        if (wait == null)
-          wait = 100;
-        function later() {
-          var last = Date.now() - timestamp;
-          if (last < wait && last >= 0) {
-            timeout = setTimeout(later, wait - last);
-          } else {
-            timeout = null;
-            if (!immediate) {
-              result = func.apply(context, args);
-              context = args = null;
-            }
-          }
-        }
-        ;
-        var debounced = function() {
-          context = this;
-          args = arguments;
-          timestamp = Date.now();
-          var callNow = immediate && !timeout;
-          if (!timeout)
-            timeout = setTimeout(later, wait);
-          if (callNow) {
-            result = func.apply(context, args);
-            context = args = null;
-          }
-          return result;
-        };
-        debounced.clear = function() {
-          if (timeout) {
-            clearTimeout(timeout);
-            timeout = null;
-          }
-        };
-        debounced.flush = function() {
-          if (timeout) {
-            result = func.apply(context, args);
-            context = args = null;
-            clearTimeout(timeout);
-            timeout = null;
-          }
-        };
-        return debounced;
-      }
-      debounce3.debounce = debounce3;
-      module.exports = debounce3;
     }
   });
 
@@ -4143,7 +4143,7 @@ Expression: "${expression}"
         }));
       }, []);
     }
-    function debounce3(fn) {
+    function debounce4(fn) {
       var pending;
       return function() {
         if (!pending) {
@@ -4595,7 +4595,7 @@ Expression: "${expression}"
               }
             }
           },
-          update: debounce3(function() {
+          update: debounce4(function() {
             return new Promise(function(resolve) {
               instance.forceUpdate();
               resolve(state);
@@ -5310,7 +5310,7 @@ Expression: "${expression}"
     function invokeWithArgsOrReturn(value, args) {
       return typeof value === "function" ? value.apply(void 0, args) : value;
     }
-    function debounce3(fn, ms) {
+    function debounce4(fn, ms) {
       if (ms === 0) {
         return fn;
       }
@@ -5779,7 +5779,7 @@ Expression: "${expression}"
       var currentTransitionEndListener;
       var onFirstUpdate;
       var listeners = [];
-      var debouncedOnMouseMove = debounce3(onMouseMove, props.interactiveDebounce);
+      var debouncedOnMouseMove = debounce4(onMouseMove, props.interactiveDebounce);
       var currentTarget;
       var id = idCounter++;
       var popperInstance = null;
@@ -6301,7 +6301,7 @@ Expression: "${expression}"
         addListeners();
         if (prevProps.interactiveDebounce !== nextProps.interactiveDebounce) {
           cleanupInteractiveMouseListeners();
-          debouncedOnMouseMove = debounce3(onMouseMove, nextProps.interactiveDebounce);
+          debouncedOnMouseMove = debounce4(onMouseMove, nextProps.interactiveDebounce);
         }
         if (prevProps.triggerTarget && !nextProps.triggerTarget) {
           normalizeToArray(prevProps.triggerTarget).forEach(function(node) {
@@ -8285,7 +8285,7 @@ Expression: "${expression}"
         if (fromEl._x_dataStack) {
           Alpine.clone(fromEl, toEl);
         }
-        if (fromEl.isEqualNode(toEl)) {
+        if (fromEl.isEqualNode(toEl) || fromEl.hasAttribute("skip-morph")) {
           return false;
         }
         return true;
@@ -8327,6 +8327,27 @@ Expression: "${expression}"
         }
       }
     };
+  }
+
+  // app/assets/lookbook/js/params.js
+  var import_debounce = __toModule(require_debounce());
+  function paramsEditor() {
+    const debouncedUpdate = (0, import_debounce.default)(updateSearchParams, 250);
+    return {
+      updateUrl($event) {
+        debouncedUpdate($event.target.name, $event.target.value, () => {
+          this.$dispatch("refresh");
+        });
+      }
+    };
+  }
+  function updateSearchParams(key, value, done) {
+    const { search, protocol, host, pathname } = window.location;
+    const searchParams = new URLSearchParams(search);
+    searchParams.set(key, encodeURIComponent(JSON.stringify(value)));
+    const url = `${protocol}//${host}${pathname}?${searchParams.toString()}`;
+    window.history.replaceState({ path: url }, "", url);
+    done();
   }
 
   // app/assets/lookbook/js/workbench.js
@@ -8507,7 +8528,7 @@ Expression: "${expression}"
 
   // app/assets/lookbook/js/utils/reloader.js
   var import_actioncable = __toModule(require_action_cable());
-  var import_debounce = __toModule(require_debounce());
+  var import_debounce2 = __toModule(require_debounce());
   function reloader_default(endpoint) {
     const uid = (Date.now() + (Math.random() * 100 | 0)).toString();
     const consumer = (0, import_actioncable.createConsumer)(`${endpoint}?uid=${uid}`);
@@ -8515,7 +8536,7 @@ Expression: "${expression}"
       uid,
       consumer,
       start() {
-        const received = (0, import_debounce.default)(() => {
+        const received = (0, import_debounce2.default)(() => {
           console.log("Lookbook files changed");
           document.dispatchEvent(new CustomEvent("refresh"));
         }, 300);
@@ -8576,6 +8597,7 @@ Expression: "${expression}"
   module_default.data("workbench", workbench);
   module_default.data("preview", preview);
   module_default.data("inspector", inspector);
+  module_default.data("paramsEditor", paramsEditor);
   module_default.data("clipboard", clipboard);
   module_default.data("sizeObserver", sizeObserver);
   module_default.data("split", split_default);
